@@ -9,7 +9,7 @@ import AboutPage from './pages/AboutPage';
 
 export default function App() {
   return (
-    <BrowserRouter basename="/pokemon-tcg">
+    <BrowserRouter>
       <div className="min-h-screen bg-gray-50 font-['Inter',sans-serif]">
         <Navbar />
         <div className="pt-16">
