@@ -1,23 +1,61 @@
 import { PokemonCard, CardSet, ApiResponse } from '../types/pokemon';
 
 const BASE_URL = 'https://api.pokemontcg.io/v2';
-
-// Optional: set your API key here for higher rate limits
-// const API_KEY = 'your-api-key';
-const HEADERS: HeadersInit = {
-  // 'X-Api-Key': API_KEY,
+const CACHE_PREFIX = 'ptcg_cache_';
+const CACHE_TTL: Record<string, number> = {
+  card: 30 * 60 * 1000,
+  search: 5 * 60 * 1000,
+  sets: 60 * 60 * 1000,
 };
 
-async function apiFetch<T>(path: string, params?: Record<string, string>): Promise<T> {
+function getCacheKey(url: string): string {
+  return CACHE_PREFIX + url;
+}
+
+function cacheGet<T>(key: string): T | null {
+  try {
+    const raw = localStorage.getItem(key);
+    if (!raw) return null;
+    const { data, expiry } = JSON.parse(raw);
+    if (Date.now() > expiry) {
+      localStorage.removeItem(key);
+      return null;
+    }
+    return data as T;
+  } catch {
+    return null;
+  }
+}
+
+function cacheSet(key: string, data: unknown, ttl: number) {
+  try {
+    localStorage.setItem(key, JSON.stringify({ data, expiry: Date.now() + ttl }));
+  } catch {
+    // localStorage full — silently ignore
+  }
+}
+
+async function apiFetch<T>(path: string, params?: Record<string, string>, ttl?: number): Promise<T> {
   const url = new URL(`${BASE_URL}${path}`);
   if (params) {
     Object.entries(params).forEach(([k, v]) => {
       if (v) url.searchParams.set(k, v);
     });
   }
-  const res = await fetch(url.toString(), { headers: HEADERS });
+  const urlStr = url.toString();
+  const cacheKey = getCacheKey(urlStr);
+
+  if (ttl) {
+    const cached = cacheGet<T>(cacheKey);
+    if (cached) return cached;
+  }
+
+  const res = await fetch(urlStr);
   if (!res.ok) throw new Error(`API Error ${res.status}: ${res.statusText}`);
-  return res.json();
+  const json = await res.json();
+
+  if (ttl) cacheSet(cacheKey, json, ttl);
+  return json;
 }
 
 export async function searchCards(
@@ -32,19 +70,19 @@ export async function searchCards(
     orderBy,
   };
   if (query) params.q = query;
-  return apiFetch<ApiResponse<PokemonCard[]>>('/cards', params);
+  return apiFetch<ApiResponse<PokemonCard[]>>('/cards', params, CACHE_TTL.search);
 }
 
 export async function getCard(id: string): Promise<{ data: PokemonCard }> {
-  return apiFetch<{ data: PokemonCard }>(`/cards/${id}`);
+  return apiFetch<{ data: PokemonCard }>(`/cards/${id}`, undefined, CACHE_TTL.card);
 }
 
 export async function getSets(): Promise<ApiResponse<CardSet[]>> {
-  return apiFetch<ApiResponse<CardSet[]>>('/sets', { orderBy: '-releaseDate' });
+  return apiFetch<ApiResponse<CardSet[]>>('/sets', { orderBy: '-releaseDate' }, CACHE_TTL.sets);
 }
 
 export async function getSet(id: string): Promise<{ data: CardSet }> {
-  return apiFetch<{ data: CardSet }>(`/sets/${id}`);
+  return apiFetch<{ data: CardSet }>(`/sets/${id}`, undefined, CACHE_TTL.card);
 }
 
 export async function getTypes(): Promise<{ data: string[] }> {
