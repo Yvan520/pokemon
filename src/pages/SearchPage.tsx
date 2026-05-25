@@ -18,7 +18,7 @@ const RARITIES = [
 const SUPERTYPES = ['Pokémon', 'Trainer', 'Energy'];
 
 export default function SearchPage() {
-  const [searchParams] = useSearchParams();
+  const [searchParams, setSearchParams] = useSearchParams();
   const [showFilters, setShowFilters] = useState(false);
 
   // Filter state
@@ -69,12 +69,24 @@ export default function SearchPage() {
     e?.preventDefault();
     const newFilters = { ...filters, name: nameInput };
     setFilters(newFilters);
+    syncUrl(newFilters);
     search(newFilters);
+  };
+
+  const syncUrl = (f: typeof filters) => {
+    const params = new URLSearchParams();
+    if (f.name) params.set('name', f.name);
+    if (f.type) params.set('type', f.type);
+    if (f.rarity) params.set('rarity', f.rarity);
+    if (f.supertype) params.set('supertype', f.supertype);
+    if (f.set) params.set('set', f.set);
+    setSearchParams(params, { replace: true });
   };
 
   const handleFilterChange = (key: keyof typeof filters, value: string) => {
     const newFilters = { ...filters, [key]: value };
     setFilters(newFilters);
+    syncUrl(newFilters);
     search(newFilters);
   };
 
@@ -82,6 +94,7 @@ export default function SearchPage() {
     const newFilters = { ...filters, [key]: '' };
     if (key === 'name') setNameInput('');
     setFilters(newFilters);
+    syncUrl(newFilters);
     search(newFilters);
   };
 
@@ -89,6 +102,7 @@ export default function SearchPage() {
     setNameInput('');
     const reset = { name: '', type: '', rarity: '', supertype: '', set: '' };
     setFilters(reset);
+    syncUrl(reset);
     search(reset);
   };
 

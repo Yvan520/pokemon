@@ -131,6 +131,7 @@ export default function CardDetailPage() {
                 src={card.images.large || card.images.small}
                 alt={card.name}
                 onLoad={() => setImgLoaded(true)}
+                onError={() => setImgLoaded(true)}
                 className={`w-full h-auto rounded-2xl relative z-10 transition-opacity duration-500 ${imgLoaded ? 'opacity-100' : 'opacity-0'} drop-shadow-xl`}
               />
               {!imgLoaded && (

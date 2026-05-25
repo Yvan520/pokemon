@@ -51,8 +51,10 @@ export default function CardGrid({ cards, loading, error, emptyMessage }: CardGr
 
   return (
     <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4">
-      {cards.map(card => (
-        <CardThumbnail key={card.id} card={card} />
+      {cards.map((card, i) => (
+        <div key={card.id} className="animate-[fadeIn_0.3s_ease-out_both]" style={{ animationDelay: `${(i % 12) * 40}ms` }}>
+          <CardThumbnail card={card} />
+        </div>
       ))}
     </div>
   );
