@@ -1,4 +1,4 @@
-import { HashRouter, Routes, Route, Link } from 'react-router-dom';
+import { BrowserRouter, Routes, Route, Link } from 'react-router-dom';
 import Navbar from './components/Navbar';
 import HomePage from './pages/HomePage';
 import SearchPage from './pages/SearchPage';
@@ -9,7 +9,7 @@ import AboutPage from './pages/AboutPage';
 
 export default function App() {
   return (
-    <HashRouter>
+    <BrowserRouter>
       <div className="min-h-screen bg-gray-50 font-['Inter',sans-serif]">
         <Navbar />
         <div className="pt-16">
@@ -33,6 +33,6 @@ export default function App() {
           </Routes>
         </div>
       </div>
-    </HashRouter>
+    </BrowserRouter>
   );
 }
