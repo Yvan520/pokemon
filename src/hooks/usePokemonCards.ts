@@ -39,6 +39,7 @@ export function usePokemonCards({ initialQuery = '', pageSize = 20 }: UseCardsOp
     rarity?: string;
     supertype?: string;
     set?: string;
+    setId?: string;
   }) => {
     const q = buildQuery(filters);
     setQuery(q);

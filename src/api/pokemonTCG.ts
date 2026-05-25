@@ -103,12 +103,14 @@ export function buildQuery(filters: {
   rarity?: string;
   supertype?: string;
   set?: string;
+  setId?: string;
 }): string {
   const parts: string[] = [];
   if (filters.name) parts.push(`name:"${filters.name}*"`);
   if (filters.type) parts.push(`types:${filters.type}`);
   if (filters.rarity) parts.push(`rarity:"${filters.rarity}"`);
   if (filters.supertype) parts.push(`supertype:${filters.supertype}`);
-  if (filters.set) parts.push(`set.name:"${filters.set}*"`);
+  if (filters.setId) parts.push(`set.id:${filters.setId}`);
+  if (filters.set && !filters.setId) parts.push(`set.name:"${filters.set}*"`);
   return parts.join(' ');
 }

@@ -36,12 +36,15 @@ export default function SearchPage() {
       // Build initial query from URL params
       const q = searchParams.get('q');
       if (q) return q;
+      const sid = searchParams.get('setId') || '';
+      const sname = searchParams.get('setName') || '';
       return buildQuery({
         name: searchParams.get('name') || '',
         type: searchParams.get('type') || '',
         rarity: searchParams.get('rarity') || '',
         supertype: searchParams.get('supertype') || '',
-        set: searchParams.get('setId') || searchParams.get('setName') || '',
+        setId: sid || undefined,
+        set: sid ? sname : sname || undefined,
       });
     })(),
     pageSize: 20,
@@ -59,7 +62,7 @@ export default function SearchPage() {
       return;
     }
 
-    const newFilters = { name, type, rarity: '', supertype: '', set: setId || setName };
+    const newFilters = { name, type, rarity: '', supertype: '', setId: setId || undefined, set: setId ? setName || undefined : setName || undefined };
     setFilters(newFilters);
     setNameInput(name);
     search(newFilters);
