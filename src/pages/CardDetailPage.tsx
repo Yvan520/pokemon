@@ -93,8 +93,39 @@ export default function CardDetailPage() {
     { key: 'prices', label: '价格行情', icon: <DollarSign size={14} /> },
   ];
 
+  const jsonLd = card ? {
+    '@context': 'https://schema.org',
+    '@type': 'Product',
+    name: card.name,
+    description: `${card.name}${card.types?.length ? ` 是${card.types.join('/')}属性的宝可梦卡牌` : ''}${card.rarity ? `，稀有度${card.rarity}` : ''}${card.artist ? `，插画师 ${card.artist}` : ''}。来自 ${card.set.name} 卡包系列。`,
+    image: card.images.large || card.images.small,
+    brand: { '@type': 'Brand', name: 'Pokémon TCG' },
+    ...(card.tcgplayer?.prices ? {
+      offers: {
+        '@type': 'Offer',
+        price: card.tcgplayer.prices.holofoil?.market || card.tcgplayer.prices.normal?.market,
+        priceCurrency: 'USD',
+        availability: 'https://schema.org/InStock',
+      }
+    } : {}),
+  } : null;
+
+  const breadcrumbLd = {
+    '@context': 'https://schema.org',
+    '@type': 'BreadcrumbList',
+    itemListElement: [
+      { '@type': 'ListItem', position: 1, name: '首页', item: 'https://www.gamewayz.com/' },
+      { '@type': 'ListItem', position: 2, name: '卡牌搜索', item: 'https://www.gamewayz.com/search' },
+      ...(card ? [{ '@type': 'ListItem', position: 3, name: card.name }] : []),
+    ],
+  };
+
   return (
     <div className="min-h-screen bg-gray-50">
+      {jsonLd && (
+        <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }} />
+      )}
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbLd) }} />
       {/* Back navigation */}
       <div className="max-w-6xl mx-auto px-4 sm:px-6 pt-6">
         <button
@@ -252,6 +283,20 @@ export default function CardDetailPage() {
                 {/* INFO TAB */}
                 {activeTab === 'info' && (
                   <div className="space-y-4">
+                    {/* Card description */}
+                    <div className="bg-gray-50 rounded-xl p-4 border border-gray-100">
+                      <p className="text-sm text-gray-700 leading-relaxed">
+                        {card.name} 是{card.supertype === 'Energy' ? '一张能量卡' : card.supertype === 'Trainer' ? '一张训练家卡' : '一只宝可梦卡牌'}
+                        {card.types?.length ? `，${card.types.join('/')}属性` : ''}
+                        {card.hp ? `，HP ${card.hp}` : ''}
+                        {card.rarity ? `，稀有度为 ${card.rarity}` : ''}
+                        。来自「{card.set.name}」卡包系列
+                        {card.set.releaseDate ? `（${card.set.releaseDate} 发售）` : ''}
+                        {card.artist ? `，插画由 ${card.artist} 绘制` : ''}
+                        。{card.flavorText ? `${card.flavorText}` : `在宝可梦 TCG 中，${card.name} 是备受玩家关注的卡牌之一。`}
+                      </p>
+                    </div>
+
                     {/* Rules / Trainer text */}
                     {card.rules && card.rules.length > 0 && (
                       <div className="space-y-2">

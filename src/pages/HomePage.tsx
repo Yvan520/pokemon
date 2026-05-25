@@ -58,8 +58,22 @@ export default function HomePage() {
     '宝可梦卡牌, Pokemon TCG, 宝可梦, 卡牌数据库, 宝可梦卡牌搜索, PTCG'
   );
 
+  const websiteLd = {
+    '@context': 'https://schema.org',
+    '@type': 'WebSite',
+    name: 'PokéDex TCG',
+    url: 'https://www.gamewayz.com/',
+    description: '全球最完整的宝可梦集换式卡牌数据库。搜索 18,000+ 张卡牌，查看技能、稀有度、价格信息。',
+    potentialAction: {
+      '@type': 'SearchAction',
+      target: { '@type': 'EntryPoint', urlTemplate: 'https://www.gamewayz.com/search?name={search_term_string}' },
+      'query-input': 'required name=search_term_string',
+    },
+  };
+
   return (
     <div className="min-h-screen bg-gray-50">
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(websiteLd) }} />
       {/* Hero Section */}
       <div className="relative bg-gradient-to-br from-red-600 via-red-700 to-red-900 overflow-hidden">
         {/* Decorative circles */}
