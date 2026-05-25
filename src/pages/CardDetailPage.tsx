@@ -31,6 +31,15 @@ export default function CardDetailPage() {
       .finally(() => setLoading(false));
   }, [id]);
 
+  const cardTitle = card ? `${card.name} — ${card.set.name} | PokéDex TCG` : '卡牌详情 — PokéDex TCG';
+  const cardDesc = card
+    ? `${card.name}${card.hp ? ` HP${card.hp}` : ''}${card.types?.length ? ` · ${card.types.join('/')}` : ''}${card.rarity ? ` · ${card.rarity}` : ''}${card.artist ? ` · 插画: ${card.artist}` : ''}`
+    : '查看宝可梦卡牌的技能、稀有度、价格信息';
+  const cardKeywords = card
+    ? `${card.name}, 宝可梦卡牌, ${card.types?.join(', ') || 'Pokemon'}, ${card.set.name}, PTCG, ${card.rarity || ''}`
+    : undefined;
+  usePageMeta(cardTitle, cardDesc, cardKeywords);
+
   if (loading) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
@@ -83,15 +92,6 @@ export default function CardDetailPage() {
     { key: 'attacks', label: '技能特性', icon: <Zap size={14} /> },
     { key: 'prices', label: '价格行情', icon: <DollarSign size={14} /> },
   ];
-
-  const cardTitle = card ? `${card.name} — ${card.set.name} | PokéDex TCG` : '卡牌详情 — PokéDex TCG';
-  const cardDesc = card
-    ? `${card.name}${card.hp ? ` HP${card.hp}` : ''}${card.types?.length ? ` · ${card.types.join('/')}` : ''}${card.rarity ? ` · ${card.rarity}` : ''}${card.artist ? ` · 插画: ${card.artist}` : ''}`
-    : '查看宝可梦卡牌的技能、稀有度、价格信息';
-  const cardKeywords = card
-    ? `${card.name}, 宝可梦卡牌, ${card.types?.join(', ') || 'Pokemon'}, ${card.set.name}, PTCG, ${card.rarity || ''}`
-    : undefined;
-  usePageMeta(cardTitle, cardDesc, cardKeywords);
 
   return (
     <div className="min-h-screen bg-gray-50">
