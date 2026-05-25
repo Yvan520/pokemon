@@ -48,6 +48,9 @@ export default function Navbar() {
             <Link to="/sets" className={`flex items-center gap-1.5 text-sm transition-colors ${isActive('/sets')}`}>
               <Database size={15} />卡包系列
             </Link>
+            <Link to="/guides" className={`flex items-center gap-1.5 text-sm transition-colors ${isActive('/guides')}`}>
+              <BookOpen size={15} />攻略指南
+            </Link>
             <Link to="/about" className={`flex items-center gap-1.5 text-sm transition-colors ${isActive('/about')}`}>
               <Database size={15} />关于
             </Link>
@@ -96,6 +99,7 @@ export default function Navbar() {
               <Link to="/" onClick={() => setMenuOpen(false)} className={`text-sm py-1 ${isActive('/')}`}>🏠 首页</Link>
               <Link to="/search" onClick={() => setMenuOpen(false)} className={`text-sm py-1 ${isActive('/search')}`}>🔍 搜索卡牌</Link>
               <Link to="/sets" onClick={() => setMenuOpen(false)} className={`text-sm py-1 ${isActive('/sets')}`}>📦 卡包系列</Link>
+              <Link to="/guides" onClick={() => setMenuOpen(false)} className={`text-sm py-1 ${isActive('/guides')}`}>📖 攻略指南</Link>
               <Link to="/about" onClick={() => setMenuOpen(false)} className={`text-sm py-1 ${isActive('/about')}`}>ℹ️ 关于</Link>
             </div>
           </div>

@@ -2,6 +2,8 @@ import { Link } from 'react-router-dom';
 import { PokemonCard } from '../types/pokemon';
 import { TYPE_COLORS, RARITY_COLORS } from '../constants/pokemon';
 import { useState } from 'react';
+import { Heart } from 'lucide-react';
+import { useFavorites } from '../hooks/useFavorites';
 
 interface CardThumbnailProps {
   card: PokemonCard;
@@ -11,6 +13,8 @@ interface CardThumbnailProps {
 export default function CardThumbnail({ card, showSet = true }: CardThumbnailProps) {
   const [hovered, setHovered] = useState(false);
   const [imgError, setImgError] = useState(false);
+  const { isFavorite, toggleFavorite } = useFavorites();
+  const favorited = isFavorite(card.id);
 
   const primaryType = card.types?.[0];
   const typeColor = primaryType ? TYPE_COLORS[primaryType] : TYPE_COLORS['Colorless'];
@@ -55,6 +59,16 @@ export default function CardThumbnail({ card, showSet = true }: CardThumbnailPro
             <span className="text-4xl">🃏</span>
           </div>
         )}
+
+        {/* Favorite Button */}
+        <button
+          onClick={e => { e.preventDefault(); e.stopPropagation(); toggleFavorite(card.id); }}
+          className={`absolute top-2 left-2 z-20 w-7 h-7 rounded-full flex items-center justify-center shadow-sm transition-all ${
+            favorited ? 'bg-red-500' : 'bg-white/80 backdrop-blur-sm opacity-0 group-hover:opacity-100'
+          }`}
+        >
+          <Heart size={13} className={favorited ? 'fill-white text-white' : 'text-gray-400'} />
+        </button>
 
         {/* HP Badge */}
         {card.hp && (

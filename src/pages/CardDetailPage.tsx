@@ -5,9 +5,10 @@ import {
   Activity, BookOpen, DollarSign, Info, ChevronRight
 } from 'lucide-react';
 import { PokemonCard } from '../types/pokemon';
-import { getCard } from '../api/pokemonTCG';
+import { getCard, searchCards } from '../api/pokemonTCG';
 import TypeBadge from '../components/TypeBadge';
 import { usePageMeta } from '../hooks/usePageMeta';
+import { useCardRatings } from '../hooks/useCardRatings';
 import {
   TYPE_COLORS, RARITY_COLORS, RARITY_STARS, ENERGY_SYMBOLS
 } from '../constants/pokemon';
@@ -20,13 +21,25 @@ export default function CardDetailPage() {
   const [error, setError] = useState<string | null>(null);
   const [imgLoaded, setImgLoaded] = useState(false);
   const [activeTab, setActiveTab] = useState<'info' | 'attacks' | 'prices'>('info');
+  const [relatedCards, setRelatedCards] = useState<PokemonCard[]>([]);
+  const { getRating, setRating } = useCardRatings();
+  const userRating = id ? getRating(id) : null;
 
   useEffect(() => {
     if (!id) return;
     setLoading(true);
     setError(null);
+    setRelatedCards([]);
     getCard(id)
-      .then(res => setCard(res.data))
+      .then(res => {
+        setCard(res.data);
+        const c = res.data;
+        if (c.types?.[0]) {
+          searchCards(`types:${c.types[0]} -id:${c.id}`, 1, 6, '-set.releaseDate')
+            .then(r => setRelatedCards(r.data?.slice(0, 6) || []))
+            .catch(() => {});
+        }
+      })
       .catch(e => setError(e.message))
       .finally(() => setLoading(false));
   }, [id]);
@@ -225,7 +238,7 @@ export default function CardDetailPage() {
                       <span key={sub} className="text-xs bg-gray-100 text-gray-600 px-2 py-0.5 rounded-full">{sub}</span>
                     ))}
                   </div>
-                  <h1 className="text-3xl font-black text-gray-900">{card.name}</h1>
+                  <Link to={`/pokemon/${encodeURIComponent(card.name)}`} className="text-3xl font-black text-gray-900 hover:text-red-600 transition-colors">{card.name}</Link>
                   {card.evolvesFrom && (
                     <p className="text-sm text-gray-500 mt-1">进化自：
                       <button
@@ -251,6 +264,25 @@ export default function CardDetailPage() {
                   {card.types.map(t => <TypeBadge key={t} type={t} size="lg" />)}
                 </div>
               )}
+
+              {/* Rating */}
+              <div className="flex items-center gap-1.5 mb-3">
+                <span className="text-xs text-gray-400 mr-1">评分:</span>
+                {[1, 2, 3, 4, 5].map(star => (
+                  <button
+                    key={star}
+                    onClick={() => setRating(card.id, star === userRating ? 0 : star)}
+                    className={`transition-all hover:scale-110 ${star <= (userRating || 0) ? 'text-yellow-400' : 'text-gray-300'}`}
+                  >
+                    <Star size={18} fill={star <= (userRating || 0) ? 'currentColor' : 'none'} />
+                  </button>
+                ))}
+                {userRating && (
+                  <span className="text-xs text-gray-400 ml-1">
+                    {userRating}/5
+                  </span>
+                )}
+              </div>
 
               {/* Flavor text */}
               {card.flavorText && (
@@ -294,6 +326,43 @@ export default function CardDetailPage() {
                         {card.set.releaseDate ? `（${card.set.releaseDate} 发售）` : ''}
                         {card.artist ? `，插画由 ${card.artist} 绘制` : ''}
                         。{card.flavorText ? `${card.flavorText}` : `在宝可梦 TCG 中，${card.name} 是备受玩家关注的卡牌之一。`}
+                      </p>
+                    </div>
+
+                    {/* Strategy Commentary */}
+                    <div className="bg-gradient-to-br from-gray-50 to-blue-50 rounded-xl p-4 border border-blue-100">
+                      <h3 className="text-xs font-bold text-gray-500 uppercase tracking-wider flex items-center gap-1 mb-2">
+                        <BookOpen size={13} /> 策略点评
+                      </h3>
+                      <p className="text-sm text-gray-700 leading-relaxed">
+                        {(() => {
+                          const lines: string[] = [];
+                          if (card.abilities?.length) {
+                            card.abilities.forEach(a => {
+                              lines.push(`${card.name} 的特性「${a.name}」${a.type === 'Ability' ? '是持续生效的被动能力' : '需要特定条件触发'}。${a.text.slice(0, 60)}… 合理利用这一特性可以在对局中获得显著优势。`);
+                            });
+                          }
+                          if (card.attacks?.length) {
+                            const attack = card.attacks[0];
+                            const costEff = attack.convertedEnergyCost;
+                            const dmg = parseInt(attack.damage);
+                            if (dmg && costEff) {
+                              const ratio = (dmg / costEff).toFixed(1);
+                              lines.push(`招式「${attack.name}」能量费用 ${costEff}，伤害 ${attack.damage}，能量效率约 ${ratio} 点伤害/能量${parseFloat(ratio) > 50 ? '，效率优秀' : parseFloat(ratio) > 30 ? '，性价比中等' : '，效率偏低但可能附带特殊效果'}。`);
+                            }
+                          }
+                          if (card.hp) {
+                            const hp = parseInt(card.hp);
+                            lines.push(`HP ${card.hp}${hp > 200 ? '，属于高血量宝可梦，具备较强的战场存活能力' : hp > 120 ? '，血量中等偏上，需要合理保护' : '，血量偏低，建议配合撤退或保护性训练家卡使用'}。`);
+                          }
+                          if (card.evolvesFrom) {
+                            lines.push(`进化自 ${card.evolvesFrom}，需要卡组中有足够数量的下级进化形态以保证进化链的稳定性。`);
+                          }
+                          if (lines.length === 0) {
+                            lines.push(`${card.name} 是${card.set.name} 系列中的一张${card.rarity || ''}卡牌，在收藏和实战中都有其独特价值。`);
+                          }
+                          return lines.join(' ');
+                        })()}
                       </p>
                     </div>
 
@@ -534,6 +603,37 @@ export default function CardDetailPage() {
             </div>
           </div>
         </div>
+
+        {/* Related Cards */}
+        {relatedCards.length > 0 && (
+          <div className="mt-10">
+            <h3 className="text-lg font-black text-gray-800 mb-4 flex items-center gap-2">
+              <Star size={18} className="text-yellow-500" />
+              同属性推荐卡牌
+            </h3>
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4">
+              {relatedCards.map(rc => {
+                const rcPrimaryType = rc.types?.[0];
+                const rcTypeColor = rcPrimaryType ? TYPE_COLORS[rcPrimaryType] : TYPE_COLORS['Colorless'];
+                return (
+                  <Link
+                    key={rc.id}
+                    to={`/card/${rc.id}`}
+                    className="group relative bg-white rounded-2xl overflow-hidden border border-gray-100 shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all"
+                  >
+                    <div className={`bg-gradient-to-br from-white to-gray-50 p-2 flex items-center justify-center ${rcTypeColor.bg} bg-opacity-20`}>
+                      <img src={rc.images.small} alt={rc.name} className="w-full h-auto object-contain rounded-lg" loading="lazy" />
+                    </div>
+                    <div className="p-2.5">
+                      <p className="text-xs font-bold text-gray-800 truncate">{rc.name}</p>
+                      <p className="text-[10px] text-gray-400 truncate">{rc.set.name}</p>
+                    </div>
+                  </Link>
+                );
+              })}
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );

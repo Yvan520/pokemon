@@ -6,6 +6,12 @@ import CardDetailPage from './pages/CardDetailPage';
 import SetsPage from './pages/SetsPage';
 import PrivacyPage from './pages/PrivacyPage';
 import AboutPage from './pages/AboutPage';
+import FavoritesPage from './pages/FavoritesPage';
+import GuidesPage from './pages/GuidesPage';
+import BeginnerGuide from './pages/guides/BeginnerGuide';
+import BestCardsGuide from './pages/guides/BestCardsGuide';
+import CharizardHistory from './pages/guides/CharizardHistory';
+import PokemonPage from './pages/PokemonPage';
 
 export default function App() {
   return (
@@ -20,6 +26,12 @@ export default function App() {
               <Route path="/sets" element={<SetsPage />} />
               <Route path="/privacy" element={<PrivacyPage />} />
               <Route path="/about" element={<AboutPage />} />
+              <Route path="/favorites" element={<FavoritesPage />} />
+              <Route path="/guides" element={<GuidesPage />} />
+              <Route path="/guides/beginner" element={<BeginnerGuide />} />
+              <Route path="/guides/best-cards" element={<BestCardsGuide />} />
+              <Route path="/guides/charizard-history" element={<CharizardHistory />} />
+              <Route path="/pokemon/:name" element={<PokemonPage />} />
               <Route path="*" element={
               <div className="flex flex-col items-center justify-center min-h-[60vh] gap-4">
                 <div className="text-6xl">🃏</div>
